@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Is Jesus your Valentine?</title>
+  <style>
+    :root{
+      --bg1:#ffffff;
+      --bg2:#f5f2ea;   /* warm off-white */
+      --card:#ffffff;
+      --ink:#0f0f0f;
+      --muted:#3b3b3b;
+      --border:rgba(15,15,15,.12);
+      --shadow:0 18px 60px rgba(0,0,0,.10);
+      --accent:#111111; /* keep it pure black */
+      --soft:#faf7f0;
+    }
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(900px 600px at 20% 10%, rgba(0,0,0,.04), transparent 55%),
+        radial-gradient(900px 600px at 80% 90%, rgba(0,0,0,.03), transparent 55%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      color:var(--ink);
+      /* full-bleed layout: the card will fill the viewport */
+      display:block;
+      padding:0;
+      overflow:hidden;
+    }
+
+    .card{
+      width:100vw;
+      height:100vh;
+      display:flex;
+      flex-direction:column;
+      border-radius:0;
+      overflow:hidden;
+      background: var(--card);
+      border:0;
+      box-shadow:none;
+      position:relative;
+    }
+
+    .topbar{
+      padding: max(16px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) 16px max(18px, env(safe-area-inset-left));
+      background: linear-gradient(90deg, rgba(0,0,0,.06), rgba(0,0,0,.03));
+      border-bottom:1px solid var(--border);
+      color:rgba(15,15,15,.9);
+      font-weight:800;
+      letter-spacing:.2px;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .pill{
+      padding:6px 10px;
+      border:1px solid rgba(0,0,0,.14);
+      border-radius:999px;
+      background: rgba(255,255,255,.85);
+      font-size:12px;
+      font-weight:800;
+      color:rgba(15,15,15,.75);
+    }
+
+    .content{
+      flex:1;
+      padding: 22px max(20px, env(safe-area-inset-right)) 18px max(20px, env(safe-area-inset-left));
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    h1{
+      margin:0;
+      font-size: clamp(34px, 5vw, 56px);
+      line-height:1.12;
+      letter-spacing:-.4px;
+      text-align:center;
+    }
+
+    .sub{
+      margin:0;
+      color:var(--muted);
+      font-size: clamp(14px, 2.6vw, 18px);
+      line-height:1.45;
+      text-align:center;
+    }
+
+    .btnRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:14px;
+      justify-content:center;
+      align-items:stretch;
+      margin-top:18px;
+      overflow: visible;
+    }
+
+    .btnWrap{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      /* reserve space so transforms don't reflow layout */
+      width: min(320px, 44vw);
+      max-width: 100%;
+    }
+
+    /* keep the choice row stable inside the box too */
+    .box .btnRow{
+      flex-wrap: wrap;
+      gap:18px;
+      justify-content:center;
+      align-items:center;
+      overflow: visible;
+    }
+
+    button{
+      border:0;
+      border-radius:18px;
+      padding:14px 18px;
+      font-weight:900;
+      cursor:pointer;
+      font-size: clamp(16px, 2.6vw, 20px);
+      min-height:56px;
+      letter-spacing:.2px;
+      transform-origin:center center;
+      transition: transform 160ms ease;
+    }
+
+    button.big{
+      border-radius:22px;
+      padding:24px 30px;
+      font-size: clamp(30px, 8vw, 44px);
+      min-height:96px;
+      min-width:min(280px, 44vw);
+    }
+
+    .primary{
+      background: linear-gradient(180deg, rgba(15,15,15,.95), rgba(15,15,15,.82));
+      color:white;
+      box-shadow: 0 12px 26px rgba(0,0,0,.16);
+    }
+
+    .ghost{
+      background: rgba(0,0,0,.04);
+      color: var(--ink);
+      border:1px solid rgba(0,0,0,.14);
+    }
+
+    .tiny{
+      background: rgba(0,0,0,.05);
+      color:#101010;
+      border:1px solid rgba(0,0,0,.14);
+    }
+
+    /* FIRST SCREEN: no box; YES/NO higher up + side-by-side */
+    .hero{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:10px;
+    }
+    .hero .btnRow{
+      margin-top: clamp(18px, 18vh, 220px);
+      flex-wrap:nowrap;
+    }
+
+    /* MESSAGE BOX PAGES */
+    .box{
+      border:1px solid rgba(0,0,0,.12);
+      background: rgba(250,247,240,.85);
+      border-radius:16px;
+      padding:16px;
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+      max-height:none;
+      overflow:visible;
+      -webkit-overflow-scrolling: touch;
+    }
+    .boxText{
+      white-space:pre-wrap;
+      font-size: clamp(16px, 2.6vw, 20px);
+      line-height:1.6;
+      text-align:center;
+    }
+    .box .btnRow{
+      margin-top: 8px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(0,0,0,.12);
+    }
+
+    .footer{
+      color:rgba(15,15,15,.72);
+      font-size:12px;
+      padding: 0 max(20px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+      text-align:center;
+    }
+
+    /* YES/NO "wall" (used on 13/14) */
+    .choiceWall{
+      position:relative;
+      width:100%;
+      height: clamp(320px, 56vh, 640px);
+      border-radius:20px;
+      overflow:hidden;
+      border:1px solid rgba(0,0,0,.12);
+      background: rgba(250,247,240,.85);
+      box-shadow: var(--shadow);
+    }
+    .wallYes,
+    .wallNo{
+      position:absolute;
+      top:0;
+      bottom:0;
+      border:0;
+      cursor:pointer;
+      font-weight:900;
+      letter-spacing:.2px;
+      transition: transform 160ms ease;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .wallYes{
+      left:0;
+      width:90%;
+      border-radius:20px 0 0 20px;
+      background: linear-gradient(180deg, rgba(15,15,15,.95), rgba(15,15,15,.82));
+      color:#fff;
+      font-size: clamp(44px, 9vw, 96px);
+    }
+    .wallNo{
+      right:0;
+      width:10%;
+      min-width: 72px; /* always reachable */
+      border-radius:0 20px 20px 0;
+      background: rgba(0,0,0,.04);
+      color: var(--ink);
+      border-left:1px solid rgba(0,0,0,.12);
+      font-size: clamp(12px, 2.2vw, 16px);
+    }
+    .wallNo span{opacity:.9}
+
+    /* Full-screen YES overlay (used on 14/14) */
+    .fullYesOverlay{
+      position:fixed;
+      inset:0;
+      z-index:9999;
+      background:
+        radial-gradient(900px 600px at 20% 10%, rgba(0,0,0,.04), transparent 55%),
+        radial-gradient(900px 600px at 80% 90%, rgba(0,0,0,.03), transparent 55%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      display:flex;
+      align-items:stretch;
+      justify-content:stretch;
+    }
+    .fullYesOverlay button{
+      width:100vw;
+      height:100vh;
+      border-radius:0;
+      margin:0;
+      background: linear-gradient(180deg, rgba(15,15,15,.98), rgba(15,15,15,.86));
+      color:#fff;
+      font-weight:900;
+      letter-spacing:.3px;
+      font-size: clamp(44px, 10vw, 120px);
+      border:0;
+    }
+    .fullYesHint{
+      position:fixed;
+      left: max(14px, env(safe-area-inset-left));
+      right: max(14px, env(safe-area-inset-right));
+      bottom: max(14px, env(safe-area-inset-bottom));
+      z-index:10000;
+      text-align:center;
+      font-size: 12px;
+      color: rgba(15,15,15,.72);
+      pointer-events:none;
+      line-height:1.35;
+    }
+
+    @media (max-width: 520px){
+      .topbar{padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 14px max(14px, env(safe-area-inset-left));}
+      .content{padding: 18px max(14px, env(safe-area-inset-right)) 14px max(14px, env(safe-area-inset-left));}
+      .footer{padding: 0 max(14px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));}
+      .hero .btnRow{flex-wrap:wrap;}
+      button.big{min-width: min(320px, 100%);}
+      .btnWrap{width:100%;}
+      .box{max-height:none;}
+      .choiceWall{height: clamp(300px, 52vh, 520px); border-radius:18px;}
+      .wallYes{font-size: clamp(40px, 12vw, 88px);}
+      .wallNo{min-width: 64px;}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <div class="topbar">
+      <div>🤍 holiness.exe</div>
+      <div class="pill" id="stagePill">stage: question</div>
+    </div>
+
+    <div class="content">
+      <h1 id="title">Is Jesus your Valentine? 🤍</h1>
+      <p class="sub" id="subtitle">one question. one decision. choose wisely.</p>
+      <div id="screen"></div>
+    </div>
+
+    <div class="footer" id="footer"></div>
+  </div>
+
+<script>
+  const stagePill = document.getElementById('stagePill');
+  const title = document.getElementById('title');
+  const subtitle = document.getElementById('subtitle');
+  const screen = document.getElementById('screen');
+  const footer = document.getElementById('footer');
+  let noCount = 0; // how many times they've said no
+
+  function setTopbarVisible(isVisible){
+    const tb = document.querySelector('.topbar');
+    if(tb) tb.style.display = isVisible ? 'flex' : 'none';
+  }
+
+  function renderButtons(container, buttons){
+    container.innerHTML = '';
+    buttons.forEach(b=>{
+      const wrap = document.createElement('div');
+      wrap.className = 'btnWrap';
+
+      const btn = document.createElement('button');
+      btn.className = b.kind;
+      btn.textContent = b.label;
+      btn.addEventListener('click', b.onClick);
+
+      wrap.appendChild(btn);
+      container.appendChild(wrap);
+    });
+  }
+
+  function showBox(stageLabel, h, sub, text, buttons, footerText=''){
+    setTopbarVisible(true);
+    stagePill.textContent = stageLabel;
+    title.textContent = h;
+    subtitle.textContent = sub;
+    footer.textContent = footerText;
+
+    screen.innerHTML = `
+      <div class="box" id="box">
+        <div class="boxText" id="boxText"></div>
+        <div class="btnRow" id="boxBtns"></div>
+      </div>
+    `;
+    document.getElementById('boxText').textContent = text;
+    renderButtons(document.getElementById('boxBtns'), buttons);
+
+    document.getElementById('box').scrollTop = 0;
+  }
+
+  function showQuestion(){
+    setTopbarVisible(true);
+    const overlay = document.querySelector('.fullYesOverlay');
+    const hint = document.querySelector('.fullYesHint');
+    if(overlay) overlay.remove();
+    if(hint) hint.remove();
+
+    noCount = 0;
+    stagePill.textContent = 'stage: question';
+    title.textContent = 'Is Jesus your Valentine? 🤍';
+    subtitle.textContent = 'one question. one decision. choose wisely.';
+    footer.textContent = '';
+
+    screen.innerHTML = `
+      <div class="hero">
+        <div class="btnRow" id="qBtns"></div>
+      </div>
+    `;
+    renderButtons(document.getElementById('qBtns'),[
+      {label:'YES 🤍', kind:'primary big', onClick: ()=>showYes()},
+      {label:'NO 😅', kind:'ghost big', onClick: ()=>showNo()},
+    ]);
+  }
+
+  function showYes(){
+    setTopbarVisible(true);
+    const overlay = document.querySelector('.fullYesOverlay');
+    const hint = document.querySelector('.fullYesHint');
+    if(overlay) overlay.remove();
+    if(hint) hint.remove();
+
+    const persistenceLine = noCount >= 14
+      ? `\nFun Fact: Jesus went through 14 stations of the cross for you — and He never gave up on you.\n`
+      : ``;
+
+    showBox(
+      'stage: correct',
+      'Correct. 🤍',
+      'good answer, Brother/Sister.',
+`Congrats! Jesus Christ chose you as well!
+
+${noCount >= 14 ? `Fun Fact: Jesus went through 14 stations of the cross for you, and He never gave up on you.
+
+` : ``}"The Lord has redeemed my soul from hell; I have beheld his glory, and I am encircled about eternally in the arms of his love." 
+— 2 Nephi 4:21
+
+Remember Him today.
+Speak of Him.
+Represent Him.
+
+(and yes… you still have to work.)
+
+Also: the California Newport Beach Temple is waiting for you.`,
+      [
+        {label:'restart', kind:'tiny', onClick: ()=>showQuestion()},
+      ],
+      'status: approved'
+    );
+  }
+
+  function showAttempt13(playfulText){
+    stagePill.textContent = 'stage: try again';
+    title.textContent = 'Are you sure? (13/14)';
+    subtitle.textContent = 'He keeps asking…';
+    footer.textContent = 'grace: still available';
+
+    screen.innerHTML = `
+      <div class="box">
+        <div class="boxText">${playfulText}\n\nYou can still choose again.</div>
+      </div>
+      <div class="choiceWall" aria-label="choices">
+        <button class="wallYes" type="button" onclick="showYes()">YES 🤍</button>
+        <button class="wallNo" type="button" onclick="showNo()"><span>NO 😅</span></button>
+      </div>
+    `;
+  }
+
+  function showAttempt14(){
+    // Hide the top UI so YES truly fills the entire viewport
+    setTopbarVisible(false);
+    footer.textContent = '';
+
+    // remove any previous overlay
+    const old = document.querySelector('.fullYesOverlay');
+    const oldHint = document.querySelector('.fullYesHint');
+    if(old) old.remove();
+    if(oldHint) oldHint.remove();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'fullYesOverlay';
+    overlay.innerHTML = `<button type="button" onclick="showYes()">YES 🤍</button>`;
+    document.body.appendChild(overlay);
+
+    const hint = document.createElement('div');
+    hint.className = 'fullYesHint';
+    hint.textContent = 'Fun Fact: Jesus went through 14 stations of the cross for you — and He never gave up on you. God is in relentless pursuit of you!';
+    document.body.appendChild(hint);
+
+    // keep the page text in sync (seen briefly during transitions)
+    stagePill.textContent = 'stage: persistence';
+    title.textContent = 'FINAL WARNING.';
+    subtitle.textContent = 'You cannot say NO anymore.';
+    screen.innerHTML = '';
+  }
+
+  function showNo(){
+    noCount++;
+    const playfulLines = [
+`You said no. He smiles patiently.` ,
+`You said no. He’s still at the door… politely.` ,
+`You said no. The knock was gentle though.` ,
+`You said no. He brought cookies this time.` ,
+`You said no. He waited anyway.` ,
+`You said no. Not offended… just hopeful.` ,
+`You said no. He wrote your name in the dust (heart included).` ,
+`You said no. He reread your story anyway.` ,
+`You said no. He kept the seat next to Him open.` ,
+`You said no. He still saved you a spot.` ,
+`You said no. He checked again just in case.` ,
+`You said no. He hasn’t left.` ,
+`You said no. Still knocking… softer now.` ,
+`You said no. He already forgave that one.`
+    ];
+    const playfulText = playfulLines[Math.min(noCount-1, playfulLines.length-1)];
+
+    // 14th time: YES fills the entire viewport
+    if(noCount >= 14){
+      showAttempt14();
+      return;
+    }
+
+    // 13th time: YES takes ~90% of the choice area, NO stays reachable inside the wall
+    if(noCount === 13){
+      showAttempt13(playfulText);
+      return;
+    }
+
+    // progressively bigger YES button (smooth growth; keep NO clickable until the 14th)
+    // Map attempts 1..13 to a smooth 1.00..~2.80 scale (bigger, but still not full-screen)
+    const t = Math.min(noCount, 13) / 13; // 0..1
+    const scale = 1 + (t * 1.80);         // 1.00 -> 2.80
+    const yesStyle = `transform:scale(${scale});`;
+
+    showBox(
+      'stage: try again',
+      `Are you sure? (${noCount}/14)`,
+      'He keeps asking…',
+`${playfulText}
+
+You can still choose again.`,
+      [
+        {label:'YES 🤍', kind:'primary big', onClick: ()=>showYes()},
+        {label:'NO 😅', kind:'ghost', onClick: ()=>showNo()},
+      ],
+      'grace: still available'
+    );
+
+    // enlarge the YES button visually after render and move NO button
+    setTimeout(()=>{
+      const btns = document.querySelectorAll('.box .btnRow button');
+      if(btns.length){
+        const yesBtn = btns[0];
+        const noBtn = btns[1];
+
+        yesBtn.style.cssText += yesStyle;
+
+        // shrink NO progressively (smooth shrink; keep it tappable until the 14th)
+        const minNoScale = 0.34; // still tappable
+        const noScale = Math.max(minNoScale, 1 - (t * 0.66)); // 1.00 -> ~0.34 by attempt 13
+
+        // Move NO to the right progressively so it doesn't get swallowed by the YES scaling.
+        // Keep it INSIDE the button row so it's always reachable.
+        const row = noBtn.closest('.btnRow');
+        const noWrap = noBtn.closest('.btnWrap');
+        const margin = 10;
+
+        if(row && noWrap){
+          // Ensure offset math behaves
+          row.style.position = row.style.position || 'relative';
+
+          // Where is the NO wrapper right now?
+          const currentLeft = noWrap.offsetLeft;
+          const wrapW = noWrap.offsetWidth;
+          const rowW = row.clientWidth;
+
+          // The furthest left edge we can move to without leaving the row
+          const rightLimitLeft = Math.max(margin, rowW - wrapW - margin);
+
+          // Remaining space to the right from current position
+          const maxShift = Math.max(0, rightLimitLeft - currentLeft);
+
+          // Shift smoothly 0 -> maxShift as t goes 0 -> 1
+          const shift = Math.round(maxShift * t);
+
+          // Apply transform to the WRAPPER so layout stays stable
+          noWrap.style.transform = `translateX(${shift}px)`;
+
+          // Shrink only the button (not the wrapper)
+          noBtn.style.transform = `scale(${noScale})`;
+        } else {
+          // Fallback: just shrink the NO button
+          noBtn.style.transform = `scale(${noScale})`;
+        }
+
+        // Ensure NO stays clickable/visible above YES until the 14th step
+        noBtn.style.position = 'relative';
+        noBtn.style.zIndex = '3';
+        yesBtn.style.position = 'relative';
+        yesBtn.style.zIndex = '2';
+      }
+    },0);
+  }
+
+  showQuestion();
+</script>
+</body>
+</html>
