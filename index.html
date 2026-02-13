@@ -30,12 +30,13 @@
       /* full-bleed layout: the card will fill the viewport */
       display:block;
       padding:0;
-      overflow:hidden;
+      overflow:auto;
     }
 
     .card{
       width:100vw;
-      height:100vh;
+      min-height:100vh;
+      height:auto;
       display:flex;
       flex-direction:column;
       border-radius:0;
@@ -71,6 +72,7 @@
 
     .content{
       flex:1;
+      min-height:0;
       padding: 22px max(20px, env(safe-area-inset-right)) 18px max(20px, env(safe-area-inset-left));
       display:flex;
       flex-direction:column;
@@ -385,13 +387,18 @@
 
     screen.innerHTML = `
       <div class="hero">
-        <div class="btnRow" id="qBtns"></div>
+        <div class="choiceWall" id="choiceWall" aria-label="choices">
+          <button class="wallYes" id="wallYes" type="button">YES 🤍</button>
+          <button class="wallNo" id="wallNo" type="button"><span>NO 😅</span></button>
+        </div>
       </div>
     `;
-    renderButtons(document.getElementById('qBtns'),[
-      {label:'YES 🤍', kind:'primary big', onClick: ()=>showYes()},
-      {label:'NO 😅', kind:'ghost big', onClick: ()=>showNo()},
-    ]);
+
+    document.getElementById('wallYes').addEventListener('click', ()=>showYes());
+    document.getElementById('wallNo').addEventListener('click', ()=>showNo());
+
+    // On the first screen keep it balanced
+    layoutChoiceWall(50);
   }
 
   function showYes(){
@@ -424,10 +431,71 @@ Represent Him.
 
 Also: the California Newport Beach Temple is waiting for you.`,
       [
+        {label:"Perks of Being Jesus' valentines", kind:'ghost', onClick: ()=>showPerks()},
         {label:'restart', kind:'tiny', onClick: ()=>showQuestion()},
       ],
       'status: approved'
     );
+  }
+
+  function showPerks(){
+    setTopbarVisible(true);
+    const overlay = document.querySelector('.fullYesOverlay');
+    const hint = document.querySelector('.fullYesHint');
+    if(overlay) overlay.remove();
+    if(hint) hint.remove();
+
+    showBox(
+      'stage: perks',
+      "Perks of Being Jesus' Valentine 🤍",
+      'quick reminder (and a little hype).',
+`• you remember who you belong to, even on hard days
+• you walk with purpose (and you don’t walk alone)
+• repentance stays open. always.
+• you get strength beyond your own (grace hits different)
+• you become a safer, kinder, steadier disciple over time
+• you represent Him, and He backs you up
+• peace that doesn’t depend on your circumstances
+
+California Newport Beach Temple is still waiting for you.`,
+      [
+        {label:'back', kind:'ghost', onClick: ()=>showYes()},
+        {label:'restart', kind:'tiny', onClick: ()=>showQuestion()},
+      ],
+      'status: blessed'
+    );
+  }
+
+  function layoutChoiceWall(yesPct){
+    const wall = document.getElementById('choiceWall');
+    const yes = document.getElementById('wallYes');
+    const no = document.getElementById('wallNo');
+    if(!wall || !yes || !no) return;
+
+    // Keep NO reachable on mobile: enforce a min pixel width.
+    const minNoPx = 78;
+
+    // First set percentage widths
+    const noPct = Math.max(0, 100 - yesPct);
+    yes.style.width = `${yesPct}%`;
+    no.style.width = `${noPct}%`;
+
+    // After layout, enforce the NO min width and give YES the remaining space.
+    requestAnimationFrame(()=>{
+      const wallW = wall.clientWidth || 0;
+      if(!wallW) return;
+
+      const desiredNoPx = Math.max(minNoPx, Math.round(wallW * (noPct/100)));
+      // Prevent NO from exceeding the wall
+      const safeNoPx = Math.min(desiredNoPx, Math.max(minNoPx, wallW - 1));
+
+      no.style.width = `${safeNoPx}px`;
+      yes.style.width = `calc(100% - ${safeNoPx}px)`;
+
+      // Ensure NO stays above and clickable
+      no.style.zIndex = '3';
+      yes.style.zIndex = '2';
+    });
   }
 
   function showAttempt13(playfulText){
@@ -440,11 +508,17 @@ Also: the California Newport Beach Temple is waiting for you.`,
       <div class="box">
         <div class="boxText">${playfulText}\n\nYou can still choose again.</div>
       </div>
-      <div class="choiceWall" aria-label="choices">
-        <button class="wallYes" type="button" onclick="showYes()">YES 🤍</button>
-        <button class="wallNo" type="button" onclick="showNo()"><span>NO 😅</span></button>
+      <div class="choiceWall" id="choiceWall" aria-label="choices">
+        <button class="wallYes" id="wallYes" type="button">YES 🤍</button>
+        <button class="wallNo" id="wallNo" type="button"><span>NO 😅</span></button>
       </div>
     `;
+
+    document.getElementById('wallYes').addEventListener('click', ()=>showYes());
+    document.getElementById('wallNo').addEventListener('click', ()=>showNo());
+
+    // 13th time: YES ~90%, NO stays reachable
+    layoutChoiceWall(90);
   }
 
   function showAttempt14(){
@@ -507,80 +581,32 @@ Also: the California Newport Beach Temple is waiting for you.`,
       return;
     }
 
-    // progressively bigger YES button (smooth growth; keep NO clickable until the 14th)
-    // Map attempts 1..13 to a smooth 1.00..~2.80 scale (bigger, but still not full-screen)
-    const t = Math.min(noCount, 13) / 13; // 0..1
-    const scale = 1 + (t * 1.80);         // 1.00 -> 2.80
-    const yesStyle = `transform:scale(${scale});`;
+    // Attempts 1–12: render with the choice wall so Safari/iPhone layout stays stable
+    stagePill.textContent = 'stage: try again';
+    title.textContent = `Are you sure? (${noCount}/14)`;
+    subtitle.textContent = 'He keeps asking…';
+    footer.textContent = 'grace: still available';
 
-    showBox(
-      'stage: try again',
-      `Are you sure? (${noCount}/14)`,
-      'He keeps asking…',
-`${playfulText}
+    screen.innerHTML = `
+      <div class="box">
+        <div class="boxText">${playfulText}\n\nYou can still choose again.</div>
+      </div>
+      <div class="choiceWall" id="choiceWall" aria-label="choices">
+        <button class="wallYes" id="wallYes" type="button">YES 🤍</button>
+        <button class="wallNo" id="wallNo" type="button"><span>NO 😅</span></button>
+      </div>
+    `;
 
-You can still choose again.`,
-      [
-        {label:'YES 🤍', kind:'primary big', onClick: ()=>showYes()},
-        {label:'NO 😅', kind:'ghost', onClick: ()=>showNo()},
-      ],
-      'grace: still available'
-    );
+    document.getElementById('wallYes').addEventListener('click', ()=>showYes());
+    document.getElementById('wallNo').addEventListener('click', ()=>showNo());
 
-    // enlarge the YES button visually after render and move NO button
-    setTimeout(()=>{
-      const btns = document.querySelectorAll('.box .btnRow button');
-      if(btns.length){
-        const yesBtn = btns[0];
-        const noBtn = btns[1];
-
-        yesBtn.style.cssText += yesStyle;
-
-        // shrink NO progressively (smooth shrink; keep it tappable until the 14th)
-        const minNoScale = 0.34; // still tappable
-        const noScale = Math.max(minNoScale, 1 - (t * 0.66)); // 1.00 -> ~0.34 by attempt 13
-
-        // Move NO to the right progressively so it doesn't get swallowed by the YES scaling.
-        // Keep it INSIDE the button row so it's always reachable.
-        const row = noBtn.closest('.btnRow');
-        const noWrap = noBtn.closest('.btnWrap');
-        const margin = 10;
-
-        if(row && noWrap){
-          // Ensure offset math behaves
-          row.style.position = row.style.position || 'relative';
-
-          // Where is the NO wrapper right now?
-          const currentLeft = noWrap.offsetLeft;
-          const wrapW = noWrap.offsetWidth;
-          const rowW = row.clientWidth;
-
-          // The furthest left edge we can move to without leaving the row
-          const rightLimitLeft = Math.max(margin, rowW - wrapW - margin);
-
-          // Remaining space to the right from current position
-          const maxShift = Math.max(0, rightLimitLeft - currentLeft);
-
-          // Shift smoothly 0 -> maxShift as t goes 0 -> 1
-          const shift = Math.round(maxShift * t);
-
-          // Apply transform to the WRAPPER so layout stays stable
-          noWrap.style.transform = `translateX(${shift}px)`;
-
-          // Shrink only the button (not the wrapper)
-          noBtn.style.transform = `scale(${noScale})`;
-        } else {
-          // Fallback: just shrink the NO button
-          noBtn.style.transform = `scale(${noScale})`;
-        }
-
-        // Ensure NO stays clickable/visible above YES until the 14th step
-        noBtn.style.position = 'relative';
-        noBtn.style.zIndex = '3';
-        yesBtn.style.position = 'relative';
-        yesBtn.style.zIndex = '2';
-      }
-    },0);
+    // Grow YES smoothly from ~55% to ~88% over attempts 1–12 (NO stays clickable)
+    const minYes = 55;
+    const maxYes = 88;
+    const t = Math.min(noCount, 12) / 12; // 0..1
+    const yesPct = Math.round(minYes + (maxYes - minYes) * t);
+    layoutChoiceWall(yesPct);
+    return;
   }
 
   showQuestion();
